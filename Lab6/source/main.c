@@ -44,7 +44,7 @@ void TimerSet(unsigned long M) {
 	_avr_timer_cntcurr = _avr_timer_M;
 }
 
-enum States {Start, One, Two, Three, Press,  Release}  state;
+enum States {Start, One, Two, Three, Four, Press,  Release}  state;
 
 int main(void) {
     /* Insert DDR and PORT initializations */
@@ -74,7 +74,11 @@ int main(void) {
 				break;
 			case Three:
 				if((~PINA & 0x01) == 1) {state = Press; }
-				else { state = One; }
+				else { state = Four; }
+				break;
+			case Four:
+				if((~PINA & 0x01) == 1) { state = Press; }
+				else { state = One; } 
 				break;
 			case Press:
 				if((~PINA & 0x01) == 1) { state = Press; }
@@ -96,6 +100,9 @@ int main(void) {
 				break;
 			case Three:
 				PORTB = 0x04;
+				break;
+			case Four:
+				PORTB = 0x02;
 				break;
 			default:
 				break;
