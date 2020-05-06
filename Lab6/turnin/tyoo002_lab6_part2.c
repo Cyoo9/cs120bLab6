@@ -58,10 +58,11 @@ int main(void) {
 	unsigned char tmpB = 0x00;
 	
 	while(1) {
-		tmpB = ~tmpB;
-		PORTB = tmpB;
+		//tmpB = ~tmpB;
+		//PORTB = tmpB;
 		switch(state) {
 			case Start:
+				//PORTB = 0x00;
 				state = One;
 				break;
 			case One:
