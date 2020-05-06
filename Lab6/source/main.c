@@ -62,7 +62,7 @@ int main(void) {
 		//PORTB = tmpB;
 		switch(state) {
 			case Start:
-				//PORTB = 0x00;
+				PORTB = 0x00;
 				state = One;
 				break;
 			case One:
