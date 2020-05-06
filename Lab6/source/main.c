@@ -44,49 +44,64 @@ void TimerSet(unsigned long M) {
 	_avr_timer_cntcurr = _avr_timer_M;
 }
 
-enum States {Start, One, Two, Three} state;
-unsigned short i = 0x00;
+enum States {Start, One, Two, Three, Press,  Release}  state;
 
 int main(void) {
     /* Insert DDR and PORT initializations */
 	DDRB = 0xFF;
 	PORTB = 0x00;
-	TimerSet(1000);
+	DDRA = 0x00;
+	PORTA = 0xFF;
+
+	TimerSet(300);
 	TimerOn();
 	unsigned char tmpB = 0x00;
+	
 	while(1) {
 		tmpB = ~tmpB;
 		PORTB = tmpB;
-	switch(state) {
-		case Start:
-			state = One;
-			break;
-		case One:
-			state = Two;
-			break;
-		case Two:
-			state = Three;
-			break;
-		case Three:
-			state = One;
-			break;
-		default:
-			break;
-	}
-	switch(state) {
-		case One:
-			PORTB = 0x01;
-			break;
-		case Two:
-			PORTB = 0x02;
-			break;
-		case Three:
-			PORTB = 0x04;
-			break;
-		default:
-			break;
-	}
-	while(!TimerFlag);
-	TimerFlag = 0;
+		switch(state) {
+			case Start:
+				state = One;
+				break;
+			case One:
+				if((~PINA & 0x01) == 1) { state = Press; }
+				else { state = Two; }
+				break;
+			case Two:
+				if((~PINA & 0x01) == 1) { state = Press; }
+				else { state = Three; }
+				break;
+			case Three:
+				if((~PINA & 0x01) == 1) {state = Press; }
+				else { state = One; }
+				break;
+			case Press:
+				if((~PINA & 0x01) == 1) { state = Press; }
+				else { state = Release; }
+				break;
+			case Release:
+				if((~PINA & 0x01) == 1) { state = One; }
+				else { state = Release; }
+				break;
+			default:
+				break;
+		}
+		switch(state) {
+			case One:
+				PORTB = 0x01;
+				break;
+			case Two:
+				PORTB = 0x02;
+				break;
+			case Three:
+				PORTB = 0x04;
+				break;
+			default:
+				break;
+		}
+					
+		while(!TimerFlag);
+		TimerFlag = 0;
 	}
 }
