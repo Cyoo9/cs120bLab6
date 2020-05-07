@@ -46,11 +46,13 @@ void TimerSet(unsigned long M) {
 
 unsigned char countOne = 0;
 unsigned char countTwo = 0;
+unsigned char counter = 0;
 enum States {Start, Off, WaitUntilThree, Increment, Decrement, Reset} state;
 
 void Tick() {
 	unsigned char temp = ~PINA & 0x03;
 	unsigned char tempB = 0x07;
+
 	switch(state) {
 		case Start:
 			PORTB = tempB & 0x07;
@@ -90,18 +92,28 @@ void Tick() {
 			if(temp == 0x01 || temp == 0x02) {
 				if(temp == 0x01) {
 					if(PORTB < 9) { 
-						PORTB++; 
-						state = Increment;
-						break;
+						if(counter < 9) {
+							counter++;
+						}
+						else  {
+							counter = 0;
+							PORTB++; 
+						}
+						
 					}
 					state = WaitUntilThree;
 
 				}
 				else if(temp == 0x02) {
 					if(PORTB > 0) { 
-						PORTB--;
-						state = Decrement;
-						break;
+						if(counter < 9) {
+							counter++;
+						}
+						else {
+							counter = 0;
+							PORTB--;
+						}
+					
 					}
 					state = WaitUntilThree;
 				}

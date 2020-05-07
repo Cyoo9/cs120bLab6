@@ -44,7 +44,100 @@ void TimerSet(unsigned long M) {
 	_avr_timer_cntcurr = _avr_timer_M;
 }
 
-enum States {Start, One, Two, Three, Four, Press,  Release}  state;
+unsigned char countOne = 0;
+unsigned char countTwo = 0;
+unsigned char counter = 0;
+enum States {Start, Off, WaitUntilThree, Increment, Decrement, Reset} state;
+
+void Tick() {
+	unsigned char temp = ~PINA & 0x03;
+	unsigned char tempB = 0x07;
+
+	switch(state) {
+		case Start:
+			PORTB = tempB & 0x07;
+			state = Off;
+			break;
+		case Off:
+			if(temp == 0x01) {
+				state = Increment;
+				if(PORTB < 0x09) {
+					PORTB++;
+				}
+				break;
+			}
+			else if(temp == 0x02) {
+				state = Decrement;
+				if(PORTB > 0x00) {
+					PORTB--;
+				}
+				break;
+			}
+			else if(temp == 0x03) {
+				PORTB = 0;
+				state = Reset;
+				break;
+			}
+			else {
+				state = Off;
+				break;
+			}
+		case Increment:
+			state = WaitUntilThree;
+			break;
+		case Decrement:
+			state = WaitUntilThree;
+			break;
+		case WaitUntilThree:
+			if(temp == 0x01 || temp == 0x02) {
+				if(temp == 0x01) {
+					if(PORTB < 9) { 
+						if(counter < 9) {
+							counter++;
+						}
+						else  {
+							counter = 0;
+							PORTB++; 
+						}
+						
+					}
+					state = WaitUntilThree;
+
+				}
+				else if(temp == 0x02) {
+					if(PORTB > 0) { 
+						if(counter < 9) {
+							counter++;
+						}
+						else {
+							counter = 0;
+							PORTB--;
+						}
+					
+					}
+					state = WaitUntilThree;
+				}
+			}
+			else if(temp == 0x03) {
+				state = Reset;
+				PORTB = 0;
+			}
+			else {
+				state = Off;
+			}
+			break;
+		case Reset:
+			if(temp == 0x01 || temp == 0x02) {
+				state = Reset;
+			}
+			else {
+				state = Off;
+			}
+			break;
+		default:
+			break;
+	}
+}
 
 int main(void) {
     /* Insert DDR and PORT initializations */
@@ -53,102 +146,12 @@ int main(void) {
 	DDRA = 0x00;
 	PORTA = 0xFF;
 
-	TimerSet(300);
+	TimerSet(100);
 	TimerOn();
 	
-	unsigned char pressed = 0;	
+	
 	while(1) {
-		switch(state) {
-			case Start:
-				PORTB = 0x00;
-				state = One;
-				break;
-			case One:
-				if((~PINA & 0x01) == 1 && pressed == 0) { 
-					state = Press; 
-					
-				}
-				else if((~PINA & 0x01) == 1 && pressed == 1) { 
-					state = Two;
-			       	}
-				else { 
-					state = Two; 
-					pressed = 0;
-				}
-				break;
-			case Two:
-				if((~PINA & 0x01) == 1 && pressed == 0) { 
-					state = Press;
-				      
-				}
-				else if((~PINA & 0x01) == 1 && pressed == 1) { 
-					state = Three; 
-				}
-				else {
-					state = Three;
-					pressed = 0;
-				}
-				break;
-			case Three:
-				if((~PINA & 0x01) == 1 && pressed == 0) {
-					state = Press; 
-		
-				}
-				else if((~PINA & 0x01) == 1 && pressed == 1)
-			      	{ 
-					state = Four;
-			       	}
-				else {
-					state = Four;
-					pressed = 0;
-				}
-				break;
-			case Four:
-				if((~PINA & 0x01) == 1 && pressed == 0) { 
-					state = Press; 
-		
-				}
-				else if((~PINA & 0x01) == 1 && pressed == 1) {
-				       	state = One;
-			       	}
-				else {
-					state = One;
-					pressed = 0;
-				}	
-				break;
-			case Press:
-				if((~PINA & 0x01) == 1) { 
-					state = Press; 
-				}
-				else { state = Release; }
-				break;
-			case Release:
-				if((~PINA & 0x01) == 1) { 
-					state = One; 
-					pressed = 1;
-				}
-				else { state = Release; }
-				break;
-			default:
-				break;
-		}
-		switch(state) {
-			case One:
-				PORTB = 0x01;
-				break;
-			case Two:
-				PORTB = 0x02;
-				break;
-			case Three:
-				PORTB = 0x04;
-				break;
-			case Four:
-				PORTB = 0x02;
-				break;
-			default:
-				break;
-		}
-					
+		Tick();	
 		while(!TimerFlag);
 		TimerFlag = 0;
 	}
