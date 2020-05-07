@@ -55,38 +55,78 @@ int main(void) {
 
 	TimerSet(300);
 	TimerOn();
-	unsigned char tmpB = 0x00;
 	
+	unsigned char pressed = 0;	
 	while(1) {
-		//tmpB = ~tmpB;
-		//PORTB = tmpB;
 		switch(state) {
 			case Start:
 				PORTB = 0x00;
 				state = One;
 				break;
 			case One:
-				if((~PINA & 0x01) == 1) { state = Press; }
-				else { state = Two; }
+				if((~PINA & 0x01) == 1 && pressed == 0) { 
+					state = Press; 
+					
+				}
+				else if((~PINA & 0x01) == 1 && pressed == 1) { 
+					state = Two;
+			       	}
+				else { 
+					state = Two; 
+					pressed = 0;
+				}
 				break;
 			case Two:
-				if((~PINA & 0x01) == 1) { state = Press; }
-				else { state = Three; }
+				if((~PINA & 0x01) == 1 && pressed == 0) { 
+					state = Press;
+				      
+				}
+				else if((~PINA & 0x01) == 1 && pressed == 1) { 
+					state = Three; 
+				}
+				else {
+					state = Three;
+					pressed = 0;
+				}
 				break;
 			case Three:
-				if((~PINA & 0x01) == 1) {state = Press; }
-				else { state = Four; }
+				if((~PINA & 0x01) == 1 && pressed == 0) {
+					state = Press; 
+		
+				}
+				else if((~PINA & 0x01) == 1 && pressed == 1)
+			      	{ 
+					state = Four;
+			       	}
+				else {
+					state = Four;
+					pressed = 0;
+				}
 				break;
 			case Four:
-				if((~PINA & 0x01) == 1) { state = Press; }
-				else { state = One; } 
+				if((~PINA & 0x01) == 1 && pressed == 0) { 
+					state = Press; 
+		
+				}
+				else if((~PINA & 0x01) == 1 && pressed == 1) {
+				       	state = One;
+			       	}
+				else {
+					state = One;
+					pressed = 0;
+				}	
 				break;
 			case Press:
-				if((~PINA & 0x01) == 1) { state = Press; }
+				if((~PINA & 0x01) == 1) { 
+					state = Press; 
+				}
 				else { state = Release; }
 				break;
 			case Release:
-				if((~PINA & 0x01) == 1) { state = One; }
+				if((~PINA & 0x01) == 1) { 
+					state = One; 
+					pressed = 1;
+				}
 				else { state = Release; }
 				break;
 			default:
